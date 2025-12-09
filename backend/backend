@@ -1,0 +1,17 @@
+backend/
+├── index.js                 (votre fichier principal - celui-ci)
+├── .env                     (variables d'environnement)
+├── package.json             (dépendances)
+├── config/
+│   └── db.js               (configuration de la base de données)
+├── models/
+│   ├── User.js             (modèle utilisateur)
+│   └── Phrase.js           (modèle phrase)
+├── controllers/
+│   ├── userController.js   (contrôleur utilisateurs)
+│   └── phraseController.js (contrôleur phrases)
+├── middleware/
+│   └── auth.js             (middleware d'authentification)
+└── routes/
+    ├── userRoutes.js       (routes utilisateurs)
+    └── phraseRoutes.js     (routes phrases)
