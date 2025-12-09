@@ -1,9 +1,10 @@
+// index.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-// Importer les routes
+// Routes
 const userRoutes = require('./routes/userRoutes');
 const phraseRoutes = require('./routes/phraseRoutes');
 
@@ -11,19 +12,28 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: '*', // Pour le développement
+  origin: '*', // Pour dev, en prod tu peux mettre l'URL de ton front
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json()); // pour parser le JSON des requêtes
+app.use(express.json());
 
 // Connexion à MongoDB Atlas
-mongoose.connect(process.env.DB_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => {
-    console.error('❌ MongoDB connection error:', err.message);
-    console.log('⚠️  Le serveur démarre sans base de données (mode test)');
-  });
+const DB_URI = process.env.DB_URI; // <- Assure-toi que Render a cette variable
+if (!DB_URI) {
+  console.error('❌ DB_URI non défini. Vérifie tes Environment Variables sur Render.');
+  process.exit(1);
+}
+
+mongoose.connect(DB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+  process.exit(1); // On arrête si la DB n’est pas connectée
+});
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -58,8 +68,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// CORRECTION ICI : Ne pas utiliser app.use('*', ...)
-// À la place, pour gérer les routes 404 :
+// Gestion 404
 app.use((req, res) => {
   res.status(404).json({
     message: 'Route not found',
@@ -68,34 +77,25 @@ app.use((req, res) => {
   });
 });
 
-// Gestionnaire d'erreurs global
+// Gestion des erreurs globales
 app.use((err, req, res, next) => {
   console.error('SERVER ERROR:', err.stack);
-  
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal server error';
-  
   res.status(statusCode).json({
     message,
     error: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 
-// Démarrage du serveur
+// Démarrage serveur
 const PORT = process.env.PORT || 5000;
-
-// Vérifier la connexion DB mais démarrer quand même
-mongoose.connection.once('open', () => {
-  console.log('✅ MongoDB connection established');
-});
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 Local: http://localhost:${PORT}`);
-  console.log(`🌐 Network: http://0.0.0.0:${PORT}`);
+  console.log(`🌐 Accessible via Render`);
 });
 
-// Gestion de la fermeture
+// Fermeture propre (optionnel sur Render)
 process.on('SIGINT', async () => {
   await mongoose.connection.close();
   console.log('👋 MongoDB connection closed');
