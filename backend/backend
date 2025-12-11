@@ -1,7 +1,7 @@
 backend/
-├── index.js                 (votre fichier principal - celui-ci)
+├── index.js                 
 ├── .env                     (variables d'environnement)
-├── package.json             (dépendances)
+├── package.json             
 ├── config/
 │   └── db.js               (configuration de la base de données)
 ├── models/
